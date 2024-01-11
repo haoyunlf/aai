@@ -33,6 +33,7 @@ import glob
 
 import soundfile as sf
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 root_path = dirname(dirname(os.path.realpath(__file__)))
 
@@ -205,6 +206,38 @@ class Speaker_Haskins(Speaker):
             
         return ema_cut, mfcc
 
+    def trim_wav(self):
+        N = len(self.EMA_files)
+
+        for k in range(N):
+        #在已经有wav的情况下，想要按照remove_silence的原则重新读取并保存去除静音的wav
+            try:
+                data = sio.loadmat(os.path.join(self.path_files_brutes, self.EMA_files[k] + ".mat"))[self.EMA_files[k]][0]
+            except:
+                print('Could not read from {}'.format(os.path.join(self.path_files_brutes, self.EMA_files[k] + ".mat"))) #HY
+                continue
+
+            # if os.path.isfile(os.path.join(root_path, "Preprocessed_data_HY", self.speaker, "wav", self.EMA_files[k] + ".wav")):
+            #     print('wav {} exists'.format(self.EMA_files[k] + ".wav"))
+            #     continue
+            wav, sr = librosa.load(os.path.join(self.root_path, "Raw_data", self.corpus, self.speaker, "wav",
+                                            self.EMA_files[k] + ".wav"), sr=self.sampling_rate_wav_wanted)
+            dur = librosa.get_duration(y=wav, sr=sr)
+
+            xtrm = detect_silence(data)
+            marge = 0.1
+            xtrm = [max(xtrm[0] - marge, 0), xtrm[1] + marge]
+
+            xtrm_temp_wav = [int(np.floor(xtrm[0] * self.sampling_rate_wav_wanted)),
+                         int(min(np.floor(xtrm[1] * self.sampling_rate_wav_wanted) + 1, len(wav)))]
+            new_wav = wav[xtrm_temp_wav[0]:xtrm_temp_wav[1]]
+
+            #print(len(wav), len(new_wav), len(new_wav)/self.sampling_rate_wav_wanted)
+            if not os.path.exists(os.path.join(root_path, "Preprocessed_data_HY", self.speaker, "wav")):
+                os.makedirs(os.path.join(root_path, "Preprocessed_data_HY", self.speaker, "wav"))
+            sf.write(os.path.join(root_path, "Preprocessed_data_HY", self.speaker, "wav", self.EMA_files[k] + ".wav"), new_wav, self.sampling_rate_wav_wanted)
+                            
+            
     def Read_general_speaker(self, display=False): #HY
         self.create_missing_dir()
         N = len(self.EMA_files)
@@ -318,10 +351,17 @@ def Preprocessing_general_haskins(N_max, path_to_raw):
 #Test :
 #Preprocessing_general_haskins(N_max=50)
 if __name__ == "__main__":
-    sp = "F01"
-    speaker = Speaker_Haskins(sp,path_to_raw="/home/yun/DATASETS/ema/", N_max=50)
-    speaker.Read_general_speaker()
-    speaker.Preprocessing_general_speaker()
+    # sp = "F01"
+    # speaker = Speaker_Haskins(sp,path_to_raw="/home/yun/DATASETS/ema/")
+    # speaker.trim_wav()
+
+    spks = ["F01", "F02", "F03", "F04", "M01", "M02", "M03", "M04"]
+    for spk in spks:
+        print('Processing', spk)
+        speaker = Speaker_Haskins(spk, path_to_raw="/home/yun/DATASETS/ema/")
+        speaker.trim_wav()
+    # speaker.Read_general_speaker()
+    # speaker.Preprocessing_general_speaker()
     
     # speaker.check_alignment()
     # speaker.Preprocessing_general_speaker(display=True)
