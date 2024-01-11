@@ -51,6 +51,7 @@ def parse(p):
 
     p.add('--dropout', type=float, default=0.0, help='Dropout rate')
 
+    p.add('--feature', type=str, default='mfcc', help='Dropout rate')
 
 
 
