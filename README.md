@@ -18,6 +18,7 @@ The Dutch data is not publicly available.
 - train_kf.py: train k-fold validation models
 
 ## Citation
+```bash
 @inproceedings{hao24c_interspeech,
   title     = {Exploring Self-Supervised Speech Representations for Cross-lingual Acoustic-to-Articulatory Inversion},
   author    = {Yun Hao and Reihaneh Amooie and Wietse {de Vries} and Thomas Tienkamp and Rik {van Noord} and Martijn Wieling},
@@ -26,3 +27,4 @@ The Dutch data is not publicly available.
   pages     = {4603--4607},
   doi       = {10.21437/Interspeech.2024-1740},
 }
+```
